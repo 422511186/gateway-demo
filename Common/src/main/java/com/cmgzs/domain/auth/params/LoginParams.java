@@ -14,6 +14,19 @@ import javax.validation.constraints.Pattern;
 @Data
 public class LoginParams {
 
+    /**
+     * 用户名
+     */
+    @NotBlank(message = "用户名不能为空")
+
+    private String userName;
+    /**
+     * 密码
+     */
+    @NotBlank(message = "密码不能为空")
+    @Pattern(regexp = "^(?![a-zA-Z]+$)(?![0-9]+$)(?![\\W_]+$)[\\w\\W]{8,16}$", message = "密码必须包含字母、数字、特殊字符，且长度大于等于8位，小于等于16位")
+    private String passWord;
+
     public interface Insert {
 
     }
@@ -21,18 +34,4 @@ public class LoginParams {
     public interface Update {
 
     }
-
-    /**
-     * 用户名
-     */
-    @NotBlank(message = "用户名不能为空")
-
-    private String userName;
-
-    /**
-     * 密码
-     */
-    @NotBlank(message = "密码不能为空")
-    @Pattern(regexp = "^(?![a-zA-Z]+$)(?![0-9]+$)(?![\\W_]+$)[\\w\\W]{8,16}$", message = "密码必须包含字母、数字、特殊字符，且长度大于等于8位，小于等于16位")
-    private String passWord;
 }

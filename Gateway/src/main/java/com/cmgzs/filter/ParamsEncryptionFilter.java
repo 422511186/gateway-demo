@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-
 /**
  * api签名
  *
@@ -164,7 +163,6 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
         }
         return chain.filter(exchange);
     }
-
 
 
 }

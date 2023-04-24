@@ -12,22 +12,19 @@ import java.util.HashMap;
  */
 public class ApiResult extends HashMap<String, Object> {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * 状态码
      */
     public static final String CODE_TAG = "code";
-
     /**
      * 返回内容
      */
     public static final String MSG_TAG = "message";
-
     /**
      * 数据对象
      */
     public static final String DATA_TAG = "data";
+    private static final long serialVersionUID = 1L;
 
     /**
      * 初始化一个新创建的 ApiResult 对象，使其表示一个空消息。

@@ -12,60 +12,46 @@ import java.util.Date;
 
 public class SnowFlakeUtil {
 
+    // 初始时间戳(纪年)，可用雪花算法服务上线时间戳的值
+    // 1650789964886：2022-04-24 16:45:59
+    private static final long INIT_EPOCH = 1650789964886L;
+    // 时间位取&
+    private static final long TIME_BIT = 0b1111111111111111111111111111111111111111110000000000000000000000L;
+    // dataCenterId占用的位数
+    private static final long DATA_CENTER_ID_BITS = 5L;
+    // dataCenterId占用5个比特位，最大值31
+    // 0000000000000000000000000000000000000000000000000000000000011111
+    private static final long MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
+    // workId占用的位数
+    private static final long WORKER_ID_BITS = 5L;
+    // workId占用5个比特位，最大值31
+    // 0000000000000000000000000000000000000000000000000000000000011111
+    private static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
+    // 最后12位，代表每毫秒内可产生最大序列号，即 2^12 - 1 = 4095
+    private static final long SEQUENCE_BITS = 12L;
+    // 掩码（最低12位为1，高位都为0），主要用于与自增后的序列号进行位与，如果值为0，则代表自增后的序列号超过了4095
+    // 0000000000000000000000000000000000000000000000000000111111111111
+    private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
+    // workId位需要左移的位数 12
+    private static final long WORK_ID_SHIFT = SEQUENCE_BITS;
+    // dataCenterId位需要左移的位数 12+5
+    private static final long DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
+    // 时间戳需要左移的位数 12+5+5
+    private static final long TIMESTAMP_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
     private static SnowFlakeUtil snowFlakeUtil;
 
     static {
         snowFlakeUtil = new SnowFlakeUtil();
     }
 
-    // 初始时间戳(纪年)，可用雪花算法服务上线时间戳的值
-    // 1650789964886：2022-04-24 16:45:59
-    private static final long INIT_EPOCH = 1650789964886L;
-
-    // 时间位取&
-    private static final long TIME_BIT = 0b1111111111111111111111111111111111111111110000000000000000000000L;
-
     // 记录最后使用的毫秒时间戳，主要用于判断是否同一毫秒，以及用于服务器时钟回拨判断
     private long lastTimeMillis = -1L;
-
-    // dataCenterId占用的位数
-    private static final long DATA_CENTER_ID_BITS = 5L;
-
-    // dataCenterId占用5个比特位，最大值31
-    // 0000000000000000000000000000000000000000000000000000000000011111
-    private static final long MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
-
     // dataCenterId
     private long dataCenterId;
-
-    // workId占用的位数
-    private static final long WORKER_ID_BITS = 5L;
-
-    // workId占用5个比特位，最大值31
-    // 0000000000000000000000000000000000000000000000000000000000011111
-    private static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
-
     // workId
     private long workerId;
-
-    // 最后12位，代表每毫秒内可产生最大序列号，即 2^12 - 1 = 4095
-    private static final long SEQUENCE_BITS = 12L;
-
-    // 掩码（最低12位为1，高位都为0），主要用于与自增后的序列号进行位与，如果值为0，则代表自增后的序列号超过了4095
-    // 0000000000000000000000000000000000000000000000000000111111111111
-    private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
-
     // 同一毫秒内的最新序号，最大值可为 2^12 - 1 = 4095
     private long sequence;
-
-    // workId位需要左移的位数 12
-    private static final long WORK_ID_SHIFT = SEQUENCE_BITS;
-
-    // dataCenterId位需要左移的位数 12+5
-    private static final long DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
-
-    // 时间戳需要左移的位数 12+5+5
-    private static final long TIMESTAMP_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
 
     /**
      * 无参构造
@@ -101,6 +87,25 @@ public class SnowFlakeUtil {
      */
     public static Long getSnowFlakeId() {
         return snowFlakeUtil.nextId();
+    }
+
+    /**
+     * 获取随机字符串,length=13
+     *
+     * @return
+     */
+    public static String getRandomStr() {
+        return Long.toString(getSnowFlakeId(), Character.MAX_RADIX);
+    }
+
+    /**
+     * 从ID中获取时间
+     *
+     * @param id 由此类生成的ID
+     * @return
+     */
+    public static Date getTimeBySnowFlakeId(long id) {
+        return new Date(((TIME_BIT & id) >> 22) + INIT_EPOCH);
     }
 
     /**
@@ -156,25 +161,6 @@ public class SnowFlakeUtil {
             currentTimeMillis = System.currentTimeMillis();
         }
         return currentTimeMillis;
-    }
-
-    /**
-     * 获取随机字符串,length=13
-     *
-     * @return
-     */
-    public static String getRandomStr() {
-        return Long.toString(getSnowFlakeId(), Character.MAX_RADIX);
-    }
-
-    /**
-     * 从ID中获取时间
-     *
-     * @param id 由此类生成的ID
-     * @return
-     */
-    public static Date getTimeBySnowFlakeId(long id) {
-        return new Date(((TIME_BIT & id) >> 22) + INIT_EPOCH);
     }
 
 
