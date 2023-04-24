@@ -1,0 +1,55 @@
+server:
+  port: 81
+# 是否启用加签过滤器
+gateway:
+  ParamsEncryptionFilter:
+    openSign: false
+spring:
+  profiles:
+    active: dev
+  application:
+    name: Thesis-Editor-Gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 43.139.107.213:8848
+        namespace: 0b24d80b-ab7e-4d7d-a5dc-50da8c3fd24c
+    gateway:
+#      # 解决：HTTP method names must be tokens 不知道啥原因
+#      filter:
+#        remove-hop-by-hop:
+#          headers: Connection
+      globalcors:
+        add-to-simple-url-handler-mapping: true # 解决options请求被拦截问题
+        cors-configurations:
+          '[/**]': # 匹配所有请求
+            allowedOrigins: "*" #跨域处理 允许所有的域
+            allowedMethods: # 支持的方法
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            allowedHeaders: "*" # 允许在请求中携带的头信息
+            allowCredentials: true # 是否允许携带cookie
+            maxAge: 360000 # 这次跨域检测的有效期
+
+      routes:
+        #测试模块
+        - id: test  # 路由的id,没有规定规则但要求唯一,建议配合服务名
+          uri: lb://Test # lb://serviceName 是SpringCloud提供的负载均衡
+          predicates:
+            - Path=/test/** # 断言 路径相匹配的进行路由
+          filters:
+            - StripPrefix= 1 #去掉一个前缀
+            - name: RequestRateLimiter #请求数限流 名字不能随便写
+              args:
+                redis-rate-limiter.replenishRate: 5 #令牌桶每秒填充平均速率
+                redis-rate-limiter.burstCapacity: 20 #令牌桶总容量
+  redis:
+    port: 6379
+    host: 43.139.107.213
+    database: 10
+    password: 123456
+    timeout: 10s
+    minimumIdleSize: 5
+    connectionPoolSize: 5

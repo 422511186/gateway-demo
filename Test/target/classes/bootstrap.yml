@@ -1,0 +1,22 @@
+server:
+  port: 82
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: Test
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 43.139.107.213:8848
+        namespace: 0b24d80b-ab7e-4d7d-a5dc-50da8c3fd24c
+  redis:
+    port: 6379
+    host: 43.139.107.213
+    database: 10
+    password: 123456
+    timeout: 10s
+    minimumIdleSize: 5
+    connectionPoolSize: 5
+
