@@ -3,7 +3,7 @@ package com.cmgzs.utils.text;
 /**
  * 字符串格式化
  * 
- * @author ruoyi
+ * @author huangzhenyu
  */
 public class StrFormatter
 {

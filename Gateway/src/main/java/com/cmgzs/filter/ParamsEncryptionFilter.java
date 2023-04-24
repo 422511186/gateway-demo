@@ -3,23 +3,20 @@ package com.cmgzs.filter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.cmgzs.constant.RequestConstants;
-import com.cmgzs.domain.MyCachedBodyOutputMessage;
+import com.cmgzs.domain.CachedBodyOutputMessageImpl;
 import com.cmgzs.utils.AccessRequestCheck;
 import com.cmgzs.utils.RSAUtils;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -33,21 +30,16 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.UnsupportedEncodingException;
+import javax.annotation.Resource;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
-import static com.cmgzs.utils.AccessRequestCheck.checkSign;
 
 
 /**
- * 参数加密传输
+ * api签名
  *
  * @author huangzhenyu
  * @date 2022/9/23
@@ -57,10 +49,12 @@ import static com.cmgzs.utils.AccessRequestCheck.checkSign;
 @RefreshScope
 public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
 
-    /**
-     * RSA 密钥写死
-     */
-    public static final String PRIVATE_KEY = "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAIlBefGEz0P24yvTsLz7e3hmITcA7hVLAf97A4xLqIkrE0XTtrHA95FgWcKenO6gI4YyyNU0zuR8wwCY0YalozBYdJjts+9ylLn6AQg2mWZICFfzvA8b/SePEl6dHwt3BD48DcGHBdCCIojSz1hqMRsAXTQTnYg2Knx+SLvDgAExAgMBAAECgYA95DiIn8qWaw2lBZ/8l6nlcKgplVHGaDxOZ7oB2Vv1/maCZiVLoigAdeID0GITeEKMkPneqiFhBqEn88EHZklfI8ATTRZknXvv7MVN/DFIsHHtNY3JfMOWDHtyf7/T1cpBytHo4o/9pvQQ+g4JFAbZt+5GWiN71Jar/eJ6o6ALwQJBAPg85l97PzbR721bJZrW6Xwzvxy2xFwsGYrNyAK/o5hLd9c8C9kvSojKbB5FsgaZp/7r1gP7Y927Hw6PSOmugzcCQQCNjC8vMb5WXjAR8FxJ/X15aIHEWkOW0MDQatoBeSel6ThrlCNGgHLs2uKCGD7VqaAzaMn1xJo6DytceMkl0aLXAkBtd02PpWXG4uTWMG9wzHzBzH/mRaJpkvjggMZGkAOwUPdT7qK672PK1pi+8LUEvBWdEJqbvuvXB4E2hnD8u3wZAkATFGxfzjK77aJJKL8n8hVxwhaL4ybtM2JqNZ0BSdWAVbmXNraykCntp2uU4bPGlUDU7TEcAc5QOS89HcLvaBytAkEA1/VVqz4ZfOKIVdgSHdBE+o+aFL8rTB+bfwpAdoXd5P1BGMz6ijxGJLEIOA6EdWpAOpye36GSjZ4n1FrLZSVSeQ==";
+    @Value(value = "${RSA.PRIVATE_KEY}")
+    private String PRIVATE_KEY;
+
+    @Resource
+    private AccessRequestCheck accessRequestCheck;
+
 
     /**
      * 解密过滤器必须在所有过滤器之前，否后后续过滤器获取参数会报错
@@ -71,23 +65,21 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
         return -1;
     }
 
-    @SneakyThrows
     @Override
+    @SneakyThrows
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         // 获取时间戳
-        Long dateTimestamp = AccessRequestCheck.getDateTimestamp(exchange.getRequest().getHeaders());
+        Long dateTimestamp = accessRequestCheck.getDateTimestamp(exchange.getRequest().getHeaders());
         // 获取RequestId
-        String requestId = AccessRequestCheck.getRequestId(exchange.getRequest().getHeaders());
-
+        String requestId = accessRequestCheck.getRequestId(exchange.getRequest().getHeaders());
         // 获取签名
-        String sign = AccessRequestCheck.getSign(exchange.getRequest().getHeaders());
+        String sign = accessRequestCheck.getSign(exchange.getRequest().getHeaders());
 
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         HttpMethod method = serverHttpRequest.getMethod();
 
         String encryptionType = "RSA";
-
         URI uri = serverHttpRequest.getURI();
         if (encryptionType != null) {
             if (method == HttpMethod.POST || method == HttpMethod.PUT) {
@@ -104,7 +96,7 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
                             paramMap.put(entry.getKey(), entry.getValue());
                         }
                     }
-                    checkSign(sign, dateTimestamp, requestId, paramMap);
+                    accessRequestCheck.checkSign(sign, dateTimestamp, requestId, paramMap);
                     return Mono.just(encrypt);
                 });
 
@@ -114,7 +106,7 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
                 headers.putAll(exchange.getRequest().getHeaders());
                 headers.remove(HttpHeaders.CONTENT_LENGTH);
 
-                MyCachedBodyOutputMessage outputMessage = new MyCachedBodyOutputMessage(exchange, headers);
+                CachedBodyOutputMessageImpl outputMessage = new CachedBodyOutputMessageImpl(exchange, headers);
                 outputMessage.initial(paramMap, requestId, sign, dateTimestamp);
 
                 return bodyInserter.insert(outputMessage, new BodyInserterContext())
@@ -125,7 +117,7 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
                                     Flux<DataBuffer> body = outputMessage.getBody();
                                     if (body.equals(Flux.empty())) {
                                         //验证签名
-                                        checkSign(outputMessage.getSign(), outputMessage.getDateTimestamp(), outputMessage.getRequestId(), outputMessage.getParamMap());
+                                        accessRequestCheck.checkSign(outputMessage.getSign(), outputMessage.getDateTimestamp(), outputMessage.getRequestId(), outputMessage.getParamMap());
                                     }
                                     return outputMessage.getBody();
                                 }
@@ -144,6 +136,7 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
                     String params = requestQueryParams.get(RequestConstants.PARAMS).get(0);
 
                     Map<String, Object> paramMap = new HashMap<>();
+
                     String encrypt = RSAUtils.decrypt(params, PRIVATE_KEY);
                     JSONObject jsonObject = JSON.parseObject(encrypt);
                     if (jsonObject != null) {
@@ -151,11 +144,15 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
                             paramMap.put(entry.getKey(), entry.getValue());
                         }
                     }
-                    checkSign(sign, dateTimestamp, requestId, paramMap);
+                    accessRequestCheck.checkSign(sign, dateTimestamp, requestId, paramMap);
+
+                    String query = paramMap.entrySet().stream()
+                            .map(entry -> entry.getKey() + "=" + entry.getValue())
+                            .collect(Collectors.joining("&"));
 
                     // 封装URL
                     URI plaintUrl = new URI(uri.getScheme(), uri.getAuthority(),
-                            uri.getPath(), encrypt, uri.getFragment());
+                            uri.getPath(), query, uri.getFragment());
                     //封装request，传给下一级
                     ServerHttpRequest request = serverHttpRequest.mutate().uri(plaintUrl).build();
                     return chain.filter(exchange.mutate().request(request).build());
@@ -166,7 +163,6 @@ public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
             }
         }
         return chain.filter(exchange);
-
     }
 
 

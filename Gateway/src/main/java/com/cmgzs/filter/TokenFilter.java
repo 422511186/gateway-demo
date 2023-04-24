@@ -1,12 +1,11 @@
 package com.cmgzs.filter;
 
-import com.cmgzs.utils.ApiUtil;
+import com.cmgzs.utils.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +22,7 @@ public class TokenFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -2;
+        return HIGHEST_PRECEDENCE + 1;
     }
 
     @Override
@@ -34,9 +33,10 @@ public class TokenFilter implements GlobalFilter, Ordered {
         /**
          * 判断是否要进入认证服务或者验证码服务
          */
-        if (!request.getURI().getPath().startsWith("/authenticate/auth/") && !request.getURI().getPath().startsWith("/CVV/")) {
+        if (!request.getURI().getPath().startsWith("/authenticate/auth/") &&
+                !request.getURI().getPath().startsWith("/CVV/")) {
             if (token == null || "".equals(token)) {
-                return ApiUtil.getResponseError(exchange, "token不能为空");
+                return R.getResponseError(exchange, "token不能为空");
             }
         }
         return chain.filter(exchange);

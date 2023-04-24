@@ -8,7 +8,7 @@ import com.cmgzs.utils.text.StringUtils;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author ruoyi 序列生成类
+ * @author huangzhenyu 序列生成类
  */
 public class Seq
 {

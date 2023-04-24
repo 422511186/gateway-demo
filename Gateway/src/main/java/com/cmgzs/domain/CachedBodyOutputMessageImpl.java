@@ -11,7 +11,7 @@ import java.util.Map;
  * @author huangzhenyu
  * @date 2022/9/29
  */
-public class MyCachedBodyOutputMessage extends CachedBodyOutputMessage {
+public class CachedBodyOutputMessageImpl extends CachedBodyOutputMessage {
 
     private Map<String, Object> paramMap;
 
@@ -21,7 +21,7 @@ public class MyCachedBodyOutputMessage extends CachedBodyOutputMessage {
 
     private String sign;
 
-    public MyCachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
+    public CachedBodyOutputMessageImpl(ServerWebExchange exchange, HttpHeaders httpHeaders) {
         super(exchange, httpHeaders);
     }
 

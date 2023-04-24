@@ -33,6 +33,16 @@
             <version>2.1.3.RELEASE</version>
         </dependency>
 
+        <!-- SpringBoot Boot Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!--redis 连接池-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
         <!--服务注册与发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  * @author huangzhenyu
  * @date 2022/9/22
  */
-public class ApiUtil {
+public class R {
     /**
      * 返回错误响应
      *

@@ -21,9 +21,10 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 public class LogFilter implements GlobalFilter, Ordered {
+
     @Override
     public int getOrder() {
-        return -102;
+        return HIGHEST_PRECEDENCE;
     }
 
     @Override
@@ -36,22 +37,4 @@ public class LogFilter implements GlobalFilter, Ordered {
 
         return chain.filter(exchange);
     }
-}
-
-class Log {
-    private String url;
-    private String headers;
-    private String address;
-    private String params;
-
-    public Log() {
-    }
-
-    public Log(String url, String headers, String address, String params) {
-        this.url = url;
-        this.headers = headers;
-        this.address = address;
-        this.params = params;
-    }
-
 }

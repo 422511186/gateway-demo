@@ -20,19 +20,19 @@ public class TestController {
 
     @PostMapping
     public Object PostMapping(@RequestBody Map<String, String> map) {
-        System.out.println("PostMapping");
+        System.out.println("GetMapping");
         return map;
     }
 
     @PutMapping
     public Object PutMapping(@RequestBody Map<String, String> map) {
-        System.out.println("PutMapping");
+        System.out.println("GetMapping");
         return map;
     }
 
     @DeleteMapping
     public Object DeleteMapping(@RequestParam Map<String, String> map) {
-        System.out.println("DeleteMapping");
+        System.out.println("GetMapping");
         return map;
     }
 }

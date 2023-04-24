@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查询测试</title>
+</head>
+<body>
+
+method:<input style="width: 200px; " id="method" type="text"/>
+<br/>
+params:<input style="width: 400px; " id="params" type="text"/>
+<br/>
+<input id="generteSign" type="button" value="generteSign"/>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/jsencrypt.js"></script>
+<script src="js/md5.min.js"></script>
+<script src="utils/utils.js"></script>
+<script type="text/javascript">
+
+    PUBLIC_KEY = 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJQXnxhM9D9uMr07C8+3t4ZiE3AO4VSwH/ewOMS6iJKxNF07axwPeRYFnCnpzuoCOGMsjVNM7kfMMAmNGGpaMwWHSY7bPvcpS5+gEINplmSAhX87wPG/0njxJenR8LdwQ+PA3BhwXQgiKI0s9YajEbAF00E52INip8fki7w4ABMQIDAQAB';
+
+    let encrypt = new JSEncrypt();
+    encrypt.setPublicKey(PUBLIC_KEY);
+
+
+    $("#generteSign").click(function () {
+        const form = {};
+        const method = $("#method").val();
+        //表单
+        const map = $("#params").val();
+        let ss = map.split(",")
+
+        for (let i = 0; i < ss.length; i++) {
+            let a = ss[i].split("=");
+            form[a[0]] = a[1];
+        }
+
+        //生成签名，也可以加盐
+        const timestamp = Date.parse(new Date());
+        const data = JSON.stringify(sort_ASCII(form));
+        const requestId = getUuid();
+        const sign = MD5(data + requestId + timestamp);
+
+        if (method === 'post' || method === 'put') {
+            $.ajax({
+                url: "http://127.0.0.1:81/test/Test",
+                beforeSend: function (XMLHttpRequest) {
+                    XMLHttpRequest.setRequestHeader("timestamp", timestamp);
+                    XMLHttpRequest.setRequestHeader("requestId", requestId);
+                    XMLHttpRequest.setRequestHeader("sign", sign);
+                },
+                data: encrypt.encrypt(data),
+                type: method,
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        } else {
+            $.ajax({
+                url: "http://127.0.0.1:81/test/Test?params=" + encrypt.encrypt(data),
+                beforeSend: function (XMLHttpRequest) {
+                    XMLHttpRequest.setRequestHeader("timestamp", timestamp);
+                    XMLHttpRequest.setRequestHeader("requestId", requestId);
+                    XMLHttpRequest.setRequestHeader("sign", sign);
+                },
+                type: method,
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+
+
+    })
+
+</script>
+
+</body>
+</html>
