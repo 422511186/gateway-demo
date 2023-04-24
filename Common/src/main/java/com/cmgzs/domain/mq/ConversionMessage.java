@@ -1,9 +1,7 @@
 package com.cmgzs.domain.mq;
 
 import com.cmgzs.domain.archive.Content;
-import lombok.Builder;
 import lombok.Data;
-import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.Map;

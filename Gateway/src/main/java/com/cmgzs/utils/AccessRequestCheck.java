@@ -1,25 +1,17 @@
 package com.cmgzs.utils;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.nacos.common.util.Md5Utils;
 import com.cmgzs.constant.RequestConstants;
-import com.cmgzs.filter.ParamsEncryptionFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.server.ServerWebExchange;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Field;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,13 +22,17 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class AccessRequestCheck {
 
+    public static final String ERROR_MESSAGE = "拒绝服务";
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
-    private static final String ERROR_MESSAGE = "拒绝服务";
-
-    public  void checkSign(String sign, Long dateTimestamp, String requestId, Map<String, Object> paramMap) {
-
+    /**
+     * @param sign          签名
+     * @param dateTimestamp 请求时间
+     * @param requestId     请求id
+     * @param paramMap      请求参数
+     */
+    public void checkSign(String sign, Long dateTimestamp, String requestId, Map<String, Object> paramMap) {
         String str = JSON.toJSONString(paramMap) + requestId + dateTimestamp;
         String tempSign = Md5Utils.getMD5(str.getBytes());
         if (!tempSign.equals(sign)) {
@@ -44,7 +40,11 @@ public class AccessRequestCheck {
         }
     }
 
-    public  String getSign(HttpHeaders headers) {
+    /**
+     * @param headers 请求头
+     * @return
+     */
+    public String getSign(HttpHeaders headers) {
         List<String> list = headers.get(RequestConstants.SIGN);
         if (CollectionUtils.isEmpty(list)) {
             throw new IllegalArgumentException(ERROR_MESSAGE);
@@ -52,8 +52,12 @@ public class AccessRequestCheck {
         return list.get(0);
     }
 
-    public  Long getDateTimestamp(HttpHeaders httpHeaders) {
-        List<String> list = httpHeaders.get(RequestConstants.TIMESTAMP);
+    /**
+     * @param headers 请求头
+     * @return
+     */
+    public Long getDateTimestamp(HttpHeaders headers) {
+        List<String> list = headers.get(RequestConstants.TIMESTAMP);
         if (CollectionUtils.isEmpty(list)) {
             log.info("非法请求");
             throw new IllegalArgumentException(ERROR_MESSAGE);
@@ -67,15 +71,17 @@ public class AccessRequestCheck {
         return timestamp;
     }
 
-    public  String getRequestId(HttpHeaders headers) {
-
+    /**
+     * @param headers 请求头
+     * @return
+     */
+    public String getRequestId(HttpHeaders headers) {
         List<String> list = headers.get(RequestConstants.REQUESTID);
         if (CollectionUtils.isEmpty(list)) {
             throw new IllegalArgumentException(ERROR_MESSAGE);
         }
         String requestId = list.get(0);
-
-//        //如果requestId存在redis中直接返回
+        //如果requestId存在redis中直接返回
         String temp = redisTemplate.opsForValue().get(requestId);
         if (temp != null) {
             throw new IllegalArgumentException(ERROR_MESSAGE);

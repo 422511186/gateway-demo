@@ -1,6 +1,7 @@
 package com.cmgzs.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.cmgzs.utils.text.StringUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -24,8 +25,8 @@ public class R {
     public static Mono<Void> getResponseError(ServerWebExchange exchange, String msg) {
         ServerHttpResponse response = exchange.getResponse();
         JSONObject message = new JSONObject();
-        message.put("code", 401);
-        message.put("message", msg);
+        message.put("code", HttpStatus.UNAUTHORIZED);
+        message.put("message", StringUtils.isNotEmpty(msg) ? msg : AccessRequestCheck.ERROR_MESSAGE);
         byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = response.bufferFactory().wrap(bits);
         response.setStatusCode(HttpStatus.UNAUTHORIZED);

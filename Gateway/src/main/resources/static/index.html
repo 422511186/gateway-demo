@@ -6,9 +6,9 @@
 </head>
 <body>
 
-method:<input style="width: 200px; " id="method" type="text"/>
+method:<input id="method" style="width: 200px; " type="text"/>
 <br/>
-params:<input style="width: 400px; " id="params" type="text"/>
+params:<input id="params" style="width: 400px; " type="text"/>
 <br/>
 <input id="generteSign" type="button" value="generteSign"/>
 
@@ -22,9 +22,10 @@ params:<input style="width: 400px; " id="params" type="text"/>
 
     let encrypt = new JSEncrypt();
     encrypt.setPublicKey(PUBLIC_KEY);
-
+    const baseURL = 'http://127.0.0.1:81';
 
     $("#generteSign").click(function () {
+
         const form = {};
         const method = $("#method").val();
         //表单
@@ -44,7 +45,7 @@ params:<input style="width: 400px; " id="params" type="text"/>
 
         if (method === 'post' || method === 'put') {
             $.ajax({
-                url: "http://127.0.0.1:81/test/Test",
+                url: baseURL + '/test/Test',
                 beforeSend: function (XMLHttpRequest) {
                     XMLHttpRequest.setRequestHeader("timestamp", timestamp);
                     XMLHttpRequest.setRequestHeader("requestId", requestId);
@@ -60,7 +61,7 @@ params:<input style="width: 400px; " id="params" type="text"/>
             });
         } else {
             $.ajax({
-                url: "http://127.0.0.1:81/test/Test?params=" + encrypt.encrypt(data),
+                uurl: baseURL + '/test/Test?params = ' + encrypt.encrypt(data),
                 beforeSend: function (XMLHttpRequest) {
                     XMLHttpRequest.setRequestHeader("timestamp", timestamp);
                     XMLHttpRequest.setRequestHeader("requestId", requestId);
