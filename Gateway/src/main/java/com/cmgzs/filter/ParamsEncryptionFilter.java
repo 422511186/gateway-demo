@@ -9,6 +9,7 @@ import com.cmgzs.utils.RSAUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RefreshScope
+@ConditionalOnProperty(prefix = "Filter.ParamsEncryptionFilter", name = "enabled", havingValue = "true")
 public class ParamsEncryptionFilter implements GlobalFilter, Ordered {
 
     @Value(value = "${RSA.PRIVATE_KEY}")

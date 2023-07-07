@@ -6,9 +6,13 @@
 </head>
 <body>
 
-method:<input id="method" style="width: 200px; " type="text"/>
+method:
 <br/>
-params:<input id="params" style="width: 400px; " type="text"/>
+<input id="method" style="width: 200px; " type="text"/>
+<br/>
+params:
+<br/>
+<input id="params" style="width: 400px; " type="text"/>
 <br/>
 <input id="generteSign" type="button" value="generteSign"/>
 
@@ -61,7 +65,7 @@ params:<input id="params" style="width: 400px; " type="text"/>
             });
         } else {
             $.ajax({
-                uurl: baseURL + '/test/Test?params = ' + encrypt.encrypt(data),
+                url: baseURL + '/test/Test?params = ' + encrypt.encrypt(data),
                 beforeSend: function (XMLHttpRequest) {
                     XMLHttpRequest.setRequestHeader("timestamp", timestamp);
                     XMLHttpRequest.setRequestHeader("requestId", requestId);

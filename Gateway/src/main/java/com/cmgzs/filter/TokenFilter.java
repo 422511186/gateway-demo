@@ -2,10 +2,12 @@ package com.cmgzs.filter;
 
 import com.cmgzs.utils.R;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -17,7 +19,8 @@ import reactor.core.publisher.Mono;
  * @date 2022/9/9
  */
 @Slf4j
-//@Component
+@Component
+@ConditionalOnProperty(prefix = "Filter.TokenFilter", name = "enabled", havingValue = "true")
 public class TokenFilter implements GlobalFilter, Ordered {
 
     @Override
